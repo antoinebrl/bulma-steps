@@ -85,6 +85,8 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -105,23 +107,23 @@ var bulmaSteps = function (_EventEmitter) {
 
     _classCallCheck(this, bulmaSteps);
 
-    var _this = _possibleConstructorReturn(this, (bulmaSteps.__proto__ || Object.getPrototypeOf(bulmaSteps)).call(this));
+    var _this2 = _possibleConstructorReturn(this, (bulmaSteps.__proto__ || Object.getPrototypeOf(bulmaSteps)).call(this));
 
-    _this.element = typeof selector === 'string' ? document.querySelector(selector) : selector;
+    _this2.element = typeof selector === 'string' ? document.querySelector(selector) : selector;
     // An invalid selector or non-DOM node has been provided.
-    if (!_this.element) {
+    if (!_this2.element) {
       throw new Error('An invalid selector or non-DOM node has been provided.');
     }
 
-    _this._clickEvents = ['click'];
+    _this2._clickEvents = ['click'];
     /// Set default options and merge with instance defined
-    _this.options = _extends({}, __WEBPACK_IMPORTED_MODULE_1__defaultOptions__["a" /* default */], options);
+    _this2.options = _extends({}, __WEBPACK_IMPORTED_MODULE_1__defaultOptions__["a" /* default */], options);
 
-    _this[onStepsPrevious] = _this[onStepsPrevious].bind(_this);
-    _this[onStepsNext] = _this[onStepsNext].bind(_this);
+    _this2[onStepsPrevious] = _this2[onStepsPrevious].bind(_this2);
+    _this2[onStepsNext] = _this2[onStepsNext].bind(_this2);
 
-    _this.init();
-    return _this;
+    _this2.init();
+    return _this2;
   }
 
   /**
@@ -152,9 +154,16 @@ var bulmaSteps = function (_EventEmitter) {
         step.setAttribute('data-step-id', index);
       });
 
+      if (this.options.step_idx < 0 || this.options.step_idx > this.steps.length) {
+        this.options.step_idx = 0;
+      }
+
       if (this.steps && this.steps.length) {
-        this.activate_step(0);
-        this.updateActions(this.steps[0]);
+        for (var i = 0; i < this.options.step_idx; i++) {
+          this.complete_step(i);
+        }
+        this.activate_step(this.options.step_idx);
+        this.updateActions(this.steps[this.options.step_idx]);
       }
 
       this._bindEvents();
@@ -171,29 +180,32 @@ var bulmaSteps = function (_EventEmitter) {
   }, {
     key: '_bindEvents',
     value: function _bindEvents() {
-      var _this2 = this;
+      var _this3 = this;
 
       if (this.previous_btn != null) {
         this._clickEvents.forEach(function (event) {
-          _this2.previous_btn.addEventListener(event, _this2[onStepsPrevious], false);
+          _this3.previous_btn.addEventListener(event, _this3[onStepsPrevious], false);
         });
       }
 
       if (this.next_btn != null) {
         this._clickEvents.forEach(function (event) {
-          _this2.next_btn.addEventListener(event, _this2[onStepsNext], false);
+          _this3.next_btn.addEventListener(event, _this3[onStepsNext], false);
         });
       }
 
       if (this.options.stepClickable) {
+        var _this = this;
         [].forEach.call(this.steps, function (step, index) {
-          _this2._clickEvents.forEach(function (event) {
-            while (index > _this2.current_id) {
-              _this2[onStepsNext](event);
-            }
-            while (index < _this2.current_id) {
-              _this2[onStepsPrevious](event);
-            }
+          _this3._clickEvents.forEach(function (event) {
+            step.addEventListener(event, function (e) {
+              while (index > _this.get_current_step_id()) {
+                _this[onStepsNext](e);
+              }
+              while (index < _this.get_current_step_id()) {
+                _this[onStepsPrevious](e);
+              }
+            }, false);
           });
         });
       }
@@ -258,47 +270,84 @@ var bulmaSteps = function (_EventEmitter) {
     }
   }, {
     key: 'next_step',
-    value: function next_step() {
-      var current_id = this.get_current_step_id();
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var current_id, next_id, errors, i;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                current_id = this.get_current_step_id();
 
-      if (current_id == null) {
-        return;
-      }
+                if (!(current_id == null)) {
+                  _context.next = 3;
+                  break;
+                }
 
-      var next_id = current_id + 1,
-          errors = [];
+                return _context.abrupt('return');
 
-      if (typeof this.options.beforeNext != 'undefined' && this.options.beforeNext != null && this.options.beforeNext) {
-        errors = this.options.beforeNext(current_id);
-      }
-      this.emit('bulmasteps:before:next', current_id);
+              case 3:
+                next_id = current_id + 1, errors = [];
 
-      if (typeof errors == 'undefined') {
-        errors = [];
-      }
+                if (!(typeof this.options.beforeNext != 'undefined' && this.options.beforeNext != null && this.options.beforeNext)) {
+                  _context.next = 8;
+                  break;
+                }
 
-      if (errors.length > 0) {
-        this.emit('bulmasteps:errors', errors);
-        for (var i = 0; i < errors.length; i++) {
-          if (typeof this.options.onError != 'undefined' && this.options.onError != null && this.options.onError) {
-            this.options.onError(errors[i]);
+                _context.next = 7;
+                return this.options.beforeNext(current_id);
+
+              case 7:
+                errors = _context.sent;
+
+              case 8:
+                this.emit('bulmasteps:before:next', current_id);
+
+                if (typeof errors == 'undefined') {
+                  errors = [];
+                }
+
+                if (!(errors.length > 0)) {
+                  _context.next = 14;
+                  break;
+                }
+
+                this.emit('bulmasteps:errors', errors);
+                for (i = 0; i < errors.length; i++) {
+                  if (typeof this.options.onError != 'undefined' && this.options.onError != null && this.options.onError) {
+                    this.options.onError(errors[i]);
+                  }
+                }
+
+                return _context.abrupt('return');
+
+              case 14:
+
+                if (next_id >= this.steps.length - 1) {
+                  if (typeof this.options.onFinish != 'undefined' && this.options.onFinish != null && this.options.onFinish) {
+                    this.options.onFinish(current_id);
+                  }
+                  this.emit('bulmasteps:finish', current_id);
+                }
+                if (next_id < this.steps.length) {
+                  this.complete_step(current_id);
+                  this.activate_step(next_id);
+                }
+
+              case 16:
+              case 'end':
+                return _context.stop();
+            }
           }
-        }
+        }, _callee, this);
+      }));
 
-        return;
+      function next_step() {
+        return _ref.apply(this, arguments);
       }
 
-      if (next_id >= this.steps.length - 1) {
-        if (typeof this.options.onFinish != 'undefined' && this.options.onFinish != null && this.options.onFinish) {
-          this.options.onFinish(current_id);
-        }
-        this.emit('bulmasteps:finish', current_id);
-      }
-      if (next_id < this.steps.length) {
-        this.complete_step(current_id);
-        this.activate_step(next_id);
-      }
-    }
+      return next_step;
+    }()
   }, {
     key: 'previous_step',
     value: function previous_step() {
@@ -584,7 +633,8 @@ var defaultOptions = {
     'beforeNext': null,
     'onShow': null,
     'onFinish': null,
-    'onError': null
+    'onError': null,
+    'step_idx': 0
 };
 
 /* harmony default export */ __webpack_exports__["a"] = (defaultOptions);

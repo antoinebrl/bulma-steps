@@ -140,6 +140,10 @@ $steps-divider-height: .2em !default
         transition: all 0s ease
         transition-delay: 1.5s
 
+  &.is-clickable
+    .step-item
+      cursor: pointer
+
   +steps-size($size-normal)
   &.is-small
     +steps-size($size-small)
